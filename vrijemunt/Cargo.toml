@@ -1,0 +1,16 @@
+[package]
+name = "vrijemunt"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Talking to the chain is left to `cast`, which the flake already pins, so
+# this crate carries no Ethereum library. That keeps the build small enough
+# for the laptop at the door.
+[dependencies]
+# Bonnetje's fork, at Bonnetje's rev. Knows the TM-T20II by product id.
+tm20 = { git = "https://github.com/teranos/tm20", rev = "5b91d851caa5f410e6f12132d4553a9f1315bd33" }
+sha3 = "0.10.8"
+
+[lints.rust]
+unsafe_code = "deny"
