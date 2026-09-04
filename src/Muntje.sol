@@ -81,4 +81,27 @@ contract Muntje {
         require(c.struck, "no coin with this hash");
         return (c.stempel, c.gezicht, c.spent);
     }
+
+    /// The bucket: what a receiver holds, per Stempel, per gezicht. The
+    /// receiver is an ENS name (line 58). Openly named here; hiding it is
+    /// the next step, and line 64 says it must be hidden.
+    mapping(bytes32 receiver => mapping(uint256 stempel => mapping(uint256 gezicht => uint256))) private buckets;
+
+    /// A receiver hands in a night of coins at once (line 61). Showing an ID
+    /// is spending it (line 32). One bad coin refuses the whole batch.
+    function handIn(bytes32 receiver, bytes32[] calldata ids) external {
+        require(ens.owner(receiver) == msg.sender, "you do not control this name");
+        for (uint256 i = 0; i < ids.length; i++) {
+            Coin storage c = coins[keccak256(abi.encodePacked(ids[i]))];
+            require(c.struck, "no coin with this ID");
+            require(!c.spent, "this coin is already spent");
+            c.spent = true;
+            buckets[receiver][c.stempel][c.gezicht] += 1;
+        }
+    }
+
+    /// How many of a gezicht a receiver holds from a Stempel.
+    function bucket(bytes32 receiver, uint256 stempel, uint256 gezicht) external view returns (uint256) {
+        return buckets[receiver][stempel][gezicht];
+    }
 }

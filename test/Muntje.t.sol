@@ -11,6 +11,7 @@ contract MuntjeTest {
 
     // namehash("commons3nse.eth") would be the real value; any node works here.
     bytes32 private constant COMMONS3NSE = keccak256("commons3nse.eth");
+    bytes32 private constant BAR = keccak256("bar.eth");
 
     // A Stempel that will not run out during a test.
     uint64 private TOMORROW;
@@ -104,6 +105,55 @@ contract MuntjeTest {
         require(buyer.tryStrike(munt, stempel, keccak256("struck by the new owner")), "the new owner strikes");
         (bool ok,) = address(munt).call(abi.encodeCall(Muntje.strike, (stempel, 0, keccak256("struck by the old owner"))));
         require(!ok, "the old owner no longer can");
+    }
+
+    function test_a_bar_hands_in_a_batch_and_its_bucket_counts_them() external {
+        string[] memory gezichten = new string[](2);
+        gezichten[0] = "beer";
+        gezichten[1] = "coat";
+        uint256 stempel = munt.cut(COMMONS3NSE, gezichten, TOMORROW, PLENTY);
+
+        // Three coins go out on paper: two beers and a coat.
+        bytes32[] memory ids = new bytes32[](3);
+        ids[0] = keccak256("paper one");
+        ids[1] = keccak256("paper two");
+        ids[2] = keccak256("paper three");
+        munt.strike(stempel, 0, keccak256(abi.encodePacked(ids[0])));
+        munt.strike(stempel, 0, keccak256(abi.encodePacked(ids[1])));
+        munt.strike(stempel, 1, keccak256(abi.encodePacked(ids[2])));
+
+        // The bar is another name; in this test the same address controls it.
+        ens.set(BAR, address(this));
+        munt.handIn(BAR, ids);
+
+        require(munt.bucket(BAR, stempel, 0) == 2, "two beers in the bucket");
+        require(munt.bucket(BAR, stempel, 1) == 1, "one coat in the bucket");
+        (,, bool spent) = munt.coin(keccak256(abi.encodePacked(ids[0])));
+        require(spent, "a handed-in coin is spent");
+    }
+
+    function test_a_batch_with_a_spent_coin_is_refused_whole() external {
+        string[] memory gezichten = new string[](1);
+        gezichten[0] = "beer";
+        uint256 stempel = munt.cut(COMMONS3NSE, gezichten, TOMORROW, PLENTY);
+        ens.set(BAR, address(this));
+
+        bytes32[] memory first = new bytes32[](1);
+        first[0] = keccak256("paper one");
+        munt.strike(stempel, 0, keccak256(abi.encodePacked(first[0])));
+        munt.handIn(BAR, first);
+
+        // A second batch: one fresh coin and the one already handed in.
+        bytes32[] memory second = new bytes32[](2);
+        second[0] = keccak256("paper two");
+        second[1] = first[0];
+        munt.strike(stempel, 0, keccak256(abi.encodePacked(second[0])));
+
+        (bool ok,) = address(munt).call(abi.encodeCall(Muntje.handIn, (BAR, second)));
+        require(!ok, "refused");
+        require(munt.bucket(BAR, stempel, 0) == 1, "the fresh coin did not land either");
+        (,, bool spent) = munt.coin(keccak256(abi.encodePacked(second[0])));
+        require(!spent, "the fresh coin is still unspent");
     }
 
     function same(string memory a, string memory b) private pure returns (bool) {
