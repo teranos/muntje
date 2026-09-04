@@ -23,3 +23,10 @@
 "The minter receives cash and distributes the Muntje to the buyer"
 "A Muntje could be used to buy a beer at a bar for example,"
 "fast because we can trust it quickly."
+
+"Stempel is het ontwerp van die zichtbare aspecten van het Muntje"
+"Editie is alles what geslagen (to strike) van 1 stempel ETHdam 2010 is een editie van dat jaar, Common S3nse heeft een andere Stempel, dus niet dezelfde editie"
+"Het gezicht van een Muntje kan binnen dezelfde editie verschillen, ze zijn allen deel van dezelfde stempel en zijn 1x keer bedacht op het moment van het maken van de stempel"
+
+"Ieder Muntje heeft een uniek willekeurig uitgekozen ID"
+"Alleen de hash van het ID is publiekelijk opgeslagen, het ID is geheim, het laten zien van het ID staat gelijk aan het uitgeven van het Muntje"
