@@ -54,3 +54,11 @@
 "Stempel has an end-date"
 "Stempel gets consumed slowly when we use it to stamp or strike coins"
 "when Stempel is consumed, a new Stempel would have to be created for a new series of editions and strikes"
+
+"The receiver of the muntje has to have an ENS as well"
+"Which could be a merchant, like a bar in this case"
+
+"merchant scans it, the pos cant accept it anymore, there is another process that determines when its a good time to on-chain everything in batches, cheap."
+
+> the count still exists and the bar can prove it to the organiser, but nobody else can read it.
+"there is no other reading than this one"
