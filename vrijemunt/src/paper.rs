@@ -6,16 +6,14 @@ use tm20::encode::encode;
 use tm20::symbol::Qr;
 use tm20::{Command, Document, Transport, Usb};
 
-use crate::config::Config;
-
-pub fn print(cfg: &Config, id: &str) -> Result<(), String> {
+pub fn print(name: &str, face: &str, id: &str) -> Result<(), String> {
     let doc = Document::new(vec![
         Command::Init,
         Command::Align(Align::Center),
         Command::Size { width: 2, height: 2 },
-        Command::Text(format!("{}\n", cfg.name)),
+        Command::Text(format!("{name}\n")),
         Command::Size { width: 1, height: 1 },
-        Command::Text(format!("{}\n", cfg.face)),
+        Command::Text(format!("{face}\n")),
         Command::Feed { lines: 1 },
         Command::Qr(Qr { data: id.to_string(), size: 6, ..Qr::default() }),
         Command::Feed { lines: 1 },

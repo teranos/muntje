@@ -1,16 +1,11 @@
-//! `munt.conf`: `key: value` lines, one per setting. Nothing in the binary
-//! knows an address or a key.
+//! `key: value` lines, one per setting. Nothing in a binary knows an address
+//! or a key; each asks the file for what it needs by name.
 
 use std::collections::HashMap;
 
 pub struct Config {
-    pub rpc: String,
-    pub contract: String,
-    pub stempel: String,
-    pub gezicht: String,
-    pub key: String,
-    pub name: String,
-    pub face: String,
+    path: String,
+    map: HashMap<String, String>,
 }
 
 pub fn load(path: &str) -> Result<Config, String> {
@@ -26,14 +21,11 @@ pub fn load(path: &str) -> Result<Config, String> {
             .ok_or_else(|| format!("{path}: `{line}` is not `key: value`"))?;
         map.insert(k.trim().to_string(), v.trim().to_string());
     }
-    let get = |k: &str| map.get(k).cloned().ok_or_else(|| format!("{path}: missing `{k}`"));
-    Ok(Config {
-        rpc: get("rpc")?,
-        contract: get("contract")?,
-        stempel: get("stempel")?,
-        gezicht: get("gezicht")?,
-        key: get("key")?,
-        name: get("name")?,
-        face: get("face")?,
-    })
+    Ok(Config { path: path.to_string(), map })
+}
+
+impl Config {
+    pub fn get(&self, key: &str) -> Result<String, String> {
+        self.map.get(key).cloned().ok_or_else(|| format!("{}: missing `{key}`", self.path))
+    }
 }

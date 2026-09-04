@@ -82,15 +82,24 @@ contract Muntje {
         return (c.stempel, c.gezicht, c.spent);
     }
 
-    /// The bucket: what a receiver holds, per Stempel, per gezicht. The
-    /// receiver is an ENS name (line 58). Openly named here; hiding it is
-    /// the next step, and line 64 says it must be hidden.
-    mapping(bytes32 receiver => mapping(uint256 stempel => mapping(uint256 gezicht => uint256))) private buckets;
+    /// The bucket: what a one-time address holds, per Stempel, per gezicht.
+    /// The receiver is an ENS name (line 58), but the name never appears
+    /// here: the address is derived from the stealth meta-address the name
+    /// publishes, and only the name's viewing key links the two (line 64).
+    mapping(address receiver => mapping(uint256 stempel => mapping(uint256 gezicht => uint256))) private buckets;
 
-    /// A receiver hands in a night of coins at once (line 61). Showing an ID
-    /// is spending it (line 32). One bad coin refuses the whole batch.
-    function handIn(bytes32 receiver, bytes32[] calldata ids) external {
-        require(ens.owner(receiver) == msg.sender, "you do not control this name");
+    /// ERC-5564. The receiver scans these with its viewing key to find the
+    /// buckets that are its own. Scheme 1 is secp256k1 with view tags.
+    event Announcement(
+        uint256 indexed schemeId, address indexed stealthAddress, address indexed caller, bytes ephemeralPubKey, bytes metadata
+    );
+
+    /// A night of coins handed in at once (line 61). Showing the IDs is the
+    /// authorisation (line 32), so anyone may submit on the receiver's behalf.
+    /// One bad coin refuses the whole batch.
+    function handIn(address receiver, bytes calldata ephemeralPubKey, bytes calldata metadata, bytes32[] calldata ids)
+        external
+    {
         for (uint256 i = 0; i < ids.length; i++) {
             Coin storage c = coins[keccak256(abi.encodePacked(ids[i]))];
             require(c.struck, "no coin with this ID");
@@ -98,10 +107,11 @@ contract Muntje {
             c.spent = true;
             buckets[receiver][c.stempel][c.gezicht] += 1;
         }
+        emit Announcement(1, receiver, msg.sender, ephemeralPubKey, metadata);
     }
 
-    /// How many of a gezicht a receiver holds from a Stempel.
-    function bucket(bytes32 receiver, uint256 stempel, uint256 gezicht) external view returns (uint256) {
+    /// How many of a gezicht a one-time address holds from a Stempel.
+    function bucket(address receiver, uint256 stempel, uint256 gezicht) external view returns (uint256) {
         return buckets[receiver][stempel][gezicht];
     }
 }

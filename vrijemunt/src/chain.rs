@@ -3,41 +3,30 @@
 
 use std::process::Command;
 
-use crate::config::Config;
-
-/// Send the strike and wait for it. Returns the transaction hash.
-pub fn strike(cfg: &Config, hash: &str) -> Result<String, String> {
-    let out = cast(&[
-        "send",
-        &cfg.contract,
-        "strike(uint256,uint256,bytes32)",
-        &cfg.stempel,
-        &cfg.gezicht,
-        hash,
-        "--rpc-url",
-        &cfg.rpc,
-        "--private-key",
-        &cfg.key,
-        "--json",
-    ])?;
-    field(&out, "transactionHash")
+/// Where and as whom to talk.
+pub struct Chain {
+    pub rpc: String,
+    pub contract: String,
+    pub key: String,
 }
 
-/// Read the coin back: Stempel number, gezicht index, spent.
-pub fn coin(cfg: &Config, hash: &str) -> Result<(String, String, bool), String> {
-    let out = cast(&[
-        "call",
-        &cfg.contract,
-        "coin(bytes32)(uint256,uint256,bool)",
-        hash,
-        "--rpc-url",
-        &cfg.rpc,
-    ])?;
-    let mut lines = out.lines().map(str::trim);
-    let stempel = lines.next().ok_or("coin: no stempel")?.to_string();
-    let gezicht = lines.next().ok_or("coin: no gezicht")?.to_string();
-    let spent = lines.next().ok_or("coin: no spent")? == "true";
-    Ok((stempel, gezicht, spent))
+impl Chain {
+    /// Send a call and wait for it. Returns the transaction hash.
+    pub fn send(&self, sig: &str, args: &[&str]) -> Result<String, String> {
+        let mut argv = vec!["send", &self.contract, sig];
+        argv.extend_from_slice(args);
+        argv.extend_from_slice(&["--rpc-url", &self.rpc, "--private-key", &self.key, "--json"]);
+        let out = cast(&argv)?;
+        field(&out, "transactionHash")
+    }
+
+    /// A read. Returns cast's output lines, one per return value.
+    pub fn call(&self, sig: &str, args: &[&str]) -> Result<Vec<String>, String> {
+        let mut argv = vec!["call", &self.contract, sig];
+        argv.extend_from_slice(args);
+        argv.extend_from_slice(&["--rpc-url", &self.rpc]);
+        Ok(cast(&argv)?.lines().map(|l| l.trim().to_string()).collect())
+    }
 }
 
 fn cast(args: &[&str]) -> Result<String, String> {

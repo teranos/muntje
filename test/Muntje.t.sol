@@ -11,7 +11,12 @@ contract MuntjeTest {
 
     // namehash("commons3nse.eth") would be the real value; any node works here.
     bytes32 private constant COMMONS3NSE = keccak256("commons3nse.eth");
-    bytes32 private constant BAR = keccak256("bar.eth");
+    // A one-time address for the bar and the ephemeral key that made it. The
+    // real values come from the stealth math in the bar binary; the contract
+    // never checks them, so any address stands in here.
+    address private constant BAR = address(uint160(uint256(keccak256("one-time address for bar.eth"))));
+    bytes private constant EPHEMERAL = hex"02aa";
+    bytes private constant VIEW_TAG = hex"7f";
 
     // A Stempel that will not run out during a test.
     uint64 private TOMORROW;
@@ -122,9 +127,9 @@ contract MuntjeTest {
         munt.strike(stempel, 0, keccak256(abi.encodePacked(ids[1])));
         munt.strike(stempel, 1, keccak256(abi.encodePacked(ids[2])));
 
-        // The bar is another name; in this test the same address controls it.
-        ens.set(BAR, address(this));
-        munt.handIn(BAR, ids);
+        // The bar's one-time address, derived off-chain from bar.eth's
+        // stealth meta-address. The contract only ever sees the address.
+        munt.handIn(BAR, EPHEMERAL, VIEW_TAG, ids);
 
         require(munt.bucket(BAR, stempel, 0) == 2, "two beers in the bucket");
         require(munt.bucket(BAR, stempel, 1) == 1, "one coat in the bucket");
@@ -136,12 +141,11 @@ contract MuntjeTest {
         string[] memory gezichten = new string[](1);
         gezichten[0] = "beer";
         uint256 stempel = munt.cut(COMMONS3NSE, gezichten, TOMORROW, PLENTY);
-        ens.set(BAR, address(this));
 
         bytes32[] memory first = new bytes32[](1);
         first[0] = keccak256("paper one");
         munt.strike(stempel, 0, keccak256(abi.encodePacked(first[0])));
-        munt.handIn(BAR, first);
+        munt.handIn(BAR, EPHEMERAL, VIEW_TAG, first);
 
         // A second batch: one fresh coin and the one already handed in.
         bytes32[] memory second = new bytes32[](2);
@@ -149,7 +153,7 @@ contract MuntjeTest {
         second[1] = first[0];
         munt.strike(stempel, 0, keccak256(abi.encodePacked(second[0])));
 
-        (bool ok,) = address(munt).call(abi.encodeCall(Muntje.handIn, (BAR, second)));
+        (bool ok,) = address(munt).call(abi.encodeCall(Muntje.handIn, (BAR, EPHEMERAL, VIEW_TAG, second)));
         require(!ok, "refused");
         require(munt.bucket(BAR, stempel, 0) == 1, "the fresh coin did not land either");
         (,, bool spent) = munt.coin(keccak256(abi.encodePacked(second[0])));

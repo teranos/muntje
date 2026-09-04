@@ -19,6 +19,9 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let cfg = config::load("munt.conf")?;
+    let chain = chain::Chain { rpc: cfg.get("rpc")?, contract: cfg.get("contract")?, key: cfg.get("key")? };
+    let stempel = cfg.get("stempel")?;
+    let gezicht = cfg.get("gezicht")?;
 
     let id = draw_id()?;
     let hash = keccak(&id);
@@ -28,16 +31,17 @@ fn run() -> Result<(), String> {
     println!("id    {id_hex}");
     println!("hash  {hash_hex}");
 
-    let tx = chain::strike(&cfg, &hash_hex)?;
+    let tx = chain.send("strike(uint256,uint256,bytes32)", &[&stempel, &gezicht, &hash_hex])?;
     println!("tx    {tx}");
 
-    let (stempel, gezicht, spent) = chain::coin(&cfg, &hash_hex)?;
-    println!("coin  stempel {stempel} gezicht {gezicht} spent {spent}");
+    let back = chain.call("coin(bytes32)(uint256,uint256,bool)", &[&hash_hex])?;
+    let spent = back.get(2).ok_or("coin: no spent")? == "true";
+    println!("coin  stempel {} gezicht {} spent {spent}", back[0], back[1]);
     if spent {
         return Err("a fresh coin reads back spent".into());
     }
 
-    paper::print(&cfg, &id_hex)?;
+    paper::print(&cfg.get("name")?, &cfg.get("face")?, &id_hex)?;
     println!("printed");
     Ok(())
 }
