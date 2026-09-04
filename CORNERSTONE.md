@@ -30,3 +30,8 @@
 
 "Ieder Muntje heeft een uniek willekeurig uitgekozen ID"
 "Alleen de hash van het ID is publiekelijk opgeslagen, het ID is geheim, het laten zien van het ID staat gelijk aan het uitgeven van het Muntje"
+
+"De Vrije Munt, het smart contract en gedecentraliseerde infrastructuur, is in dit geval the stempelsnijder"
+
+> Is a Stempel cut by an ENS name, so that only whoever controls that name can strike from it?
+"Yes"
