@@ -62,3 +62,9 @@
 
 > the count still exists and the bar can prove it to the organiser, but nobody else can read it.
 "there is no other reading than this one"
+
+"any event organiser"
+"popup-cities"
+"but specifically events with multiple vendors or, just a lot of people you wnt to organise"
+
+"in reality it would be the thing you operate,your direct interface to the smart contract, ability to create stamps"
