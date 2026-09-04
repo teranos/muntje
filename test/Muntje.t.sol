@@ -10,7 +10,8 @@ contract MuntjeTest {
     Muntje private munt;
 
     // namehash("commons3nse.eth") would be the real value; any node works here.
-    bytes32 private constant COMMONS3NSE = keccak256("commons3nse.eth");
+    // The label of commons3nse.eth: ENSv2 registries answer by label.
+    string private constant COMMONS3NSE = "commons3nse";
     // A one-time address for the bar and the ephemeral key that made it. The
     // real values come from the stealth math in the bar binary; the contract
     // never checks them, so any address stands in here.
@@ -36,8 +37,8 @@ contract MuntjeTest {
 
         uint256 number = munt.cut(COMMONS3NSE, gezichten, TOMORROW, PLENTY);
 
-        (bytes32 node, string[] memory back, uint64 endDate, uint64 ink) = munt.read(number);
-        require(node == COMMONS3NSE, "the Stempel is the name");
+        (string memory label, string[] memory back, uint64 endDate, uint64 ink) = munt.read(number);
+        require(same(label, COMMONS3NSE), "the Stempel is the name");
         require(back.length == 2, "two gezichten");
         require(same(back[0], "beer"), "beer");
         require(same(back[1], "coat"), "coat");
@@ -168,10 +169,10 @@ contract MuntjeTest {
 /// Someone who does not control the name. Without forge-std there is no
 /// prank, so a second contract is the second caller.
 contract Stranger {
-    function tryCut(Muntje munt, bytes32 node) external returns (bool ok) {
+    function tryCut(Muntje munt, string memory label) external returns (bool ok) {
         string[] memory gezichten = new string[](1);
         gezichten[0] = "beer";
-        (ok,) = address(munt).call(abi.encodeCall(Muntje.cut, (node, gezichten, uint64(block.timestamp + 1 days), 1000)));
+        (ok,) = address(munt).call(abi.encodeCall(Muntje.cut, (label, gezichten, uint64(block.timestamp + 1 days), 1000)));
     }
 
     function tryStrike(Muntje munt, uint256 stempel, bytes32 hash) external returns (bool ok) {

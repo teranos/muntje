@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-/// The one call De Vrije Munt makes to ENS: who owns a name, right now.
+/// The one call De Vrije Munt makes to ENS: who owns label.eth, right now.
+/// This is ENSv2's registry interface, live on Sepolia; v1 answers the same
+/// question as owner(node) and gets a three-line adapter when mainnet needs it.
 interface IENS {
-    function owner(bytes32 node) external view returns (address);
+    function findOwner(string calldata label) external view returns (address);
 }
 
 /// De Vrije Munt. What a Muntje is, in Brandon's words, is in CORNERSTONE.md.
@@ -18,7 +20,7 @@ contract Muntje {
     /// It has an end-date and ink (lines 54, 55): every strike uses one ink,
     /// and when either runs out a new Stempel has to be cut (line 56).
     struct Stempel {
-        bytes32 node;
+        string label;
         string[] gezichten;
         uint64 endDate;
         uint64 ink;
@@ -42,13 +44,13 @@ contract Muntje {
         ens = registry;
     }
 
-    /// Cut a Stempel as an ENS name. Returns its number. No name, no Stempel.
-    function cut(bytes32 node, string[] calldata gezichten, uint64 endDate, uint64 ink)
+    /// Cut a Stempel as label.eth. Returns its number. No name, no Stempel.
+    function cut(string calldata label, string[] calldata gezichten, uint64 endDate, uint64 ink)
         external
         returns (uint256)
     {
-        require(ens.owner(node) == msg.sender, "you do not control this name");
-        stempels.push(Stempel({node: node, gezichten: gezichten, endDate: endDate, ink: ink}));
+        require(ens.findOwner(label) == msg.sender, "you do not control this name");
+        stempels.push(Stempel({label: label, gezichten: gezichten, endDate: endDate, ink: ink}));
         return stempels.length - 1;
     }
 
@@ -56,17 +58,17 @@ contract Muntje {
     function read(uint256 number)
         external
         view
-        returns (bytes32 node, string[] memory gezichten, uint64 endDate, uint64 ink)
+        returns (string memory label, string[] memory gezichten, uint64 endDate, uint64 ink)
     {
         Stempel storage s = stempels[number];
-        return (s.node, s.gezichten, s.endDate, s.ink);
+        return (s.label, s.gezichten, s.endDate, s.ink);
     }
 
     /// Strike a coin from a Stempel. Only whoever controls the name may, now,
     /// and only while the Stempel has ink and time.
     function strike(uint256 stempel, uint256 gezicht, bytes32 hash) external {
         Stempel storage s = stempels[stempel];
-        require(ens.owner(s.node) == msg.sender, "you do not control this name");
+        require(ens.findOwner(s.label) == msg.sender, "you do not control this name");
         require(block.timestamp < s.endDate, "this Stempel has passed its end-date");
         require(s.ink > 0, "this Stempel is out of ink");
         require(gezicht < s.gezichten.length, "no such gezicht on this Stempel");

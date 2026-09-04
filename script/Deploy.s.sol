@@ -17,7 +17,7 @@ interface Vm {
 contract Deploy {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
-    bytes32 private constant COMMONS3NSE = keccak256("commons3nse.eth");
+    string private constant COMMONS3NSE = "commons3nse";
 
     event Deployed(address ens, address munt, uint256 stempel);
 
