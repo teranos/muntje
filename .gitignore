@@ -3,3 +3,5 @@ out/
 broadcast/
 vrijemunt/target/
 infra/.terraform/
+console/node_modules/
+console/dist/

@@ -1,0 +1,56 @@
+/* The palette sbvh.nl and Werf carry: mono type, green accent,
+   light by default, dark when the OS says so. Muntje adds nothing of its own
+   beyond the two state colours at the bottom. */
+:root {
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Fira Code', 'Consolas', monospace;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-md: 13px;
+  --font-size-lg: 14px;
+
+  --gap: 7px;
+  --border-radius: 3px;
+  --border-radius-lg: 7px;
+
+  --text: #333433;
+  --text-secondary: #656766;
+  --text-tertiary: #989a99;
+  --bg: #fcffff;
+  --bg-secondary: #f7f9f8;
+  --border: #dcdedd;
+  --accent: #3d7a4d;
+  --accent-hover: #2d6a3d;
+  --accent-text: #fcffff;
+
+  --warn: #b38a40;
+  --bad: #a35a5a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #b0b2b1;
+    --text-secondary: #8a8c8b;
+    --text-tertiary: #6a6c6b;
+    --bg: #1a1b1a;
+    --bg-secondary: #252625;
+    --border: #3f4140;
+    --accent: #6a9a76;
+    --accent-hover: #82b08c;
+    --accent-text: #1a1b1a;
+
+    --warn: #c9a45a;
+    --bad: #c97a7a;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
